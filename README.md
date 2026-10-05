@@ -295,7 +295,7 @@ set ER_CE_MODEL=C:\path\to\models\mdeberta-v3-base   # microsoft/mdeberta-v3-bas
 | 7 | `python stacker.py val && python stacker.py test` (score files passed via `ER_CE_EXT`, `ER_M2_DIR`, `ER_M2B_DIR`) | ~20 min |
 | 8 | `python ce.py write` → `unseen_calib.py` → `final_candidates.py` → `unseen_renorm.py` | ~15 min |
 
-*RTX 4060 Laptop. `docs/methodology.md` has the full methodology.
+`docs/methodology.md` has the full methodology.
 
 ---
 

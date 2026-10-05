@@ -40,47 +40,27 @@ A company holds the same businesses in three independent sources. **Source 1** i
 ## ✅ Our Solution at a Glance
 
 ```mermaid
-flowchart TD
+flowchart LR
     classDef step fill:#ffffff,stroke:#d0d7de,stroke-width:2px,color:#24292f,text-align:center
-    classDef input fill:#f6f8fa,stroke:#d0d7de,stroke-width:2px,color:#24292f
+    classDef input fill:#f6f8fa,stroke:#d0d7de,stroke-width:2px,color:#24292f,stroke-dasharray: 5 5
     classDef output fill:#dafbe1,stroke:#4ac26b,stroke-width:2px,color:#24292f
-    classDef highlight fill:#ddf4ff,stroke:#54aeff,stroke-width:2px,color:#24292f,text-align:center
 
-    Input[fa:fa-file-alt Raw TSV <br> S1, S2, S3]:::input --> Norm
-
+    In[Raw TSV<br>S1, S2, S3]:::input --> N
+    
     subgraph Pipeline [ENTITY RESOLUTION PIPELINE per country]
-        direction TB
-        
-        subgraph Row1 [ ]
-            direction LR
-            Norm["<b>Normalise</b><br/>transliterate<br/>legal/filler"]:::step
-            Block["<b>Blocking (GPU)</b><br/>dense kNN + rare tokens<br/>+ sound / initials keys<br/><i>~114 candidates / S1</i>"]:::highlight
-            Feats["<b>Features (~150)</b><br/>string - number - context<br/>competition - record"]:::step
-            
-            Norm --> Block --> Feats
-        end
-        
-        subgraph Row2 [ ]
-            direction LR
-            XGB["<b>Two-stage XGBoost (GPU)</b><br/>learned filter"]:::highlight
-            CE["<b>Cross-encoder re-ranking</b><br/>mDeBERTa on uncertain band<br/>0.002 < p < 0.998"]:::step
-            Stack["<b>STACKER (final model)</b><br/>ours + 2nd XGBoost + 5 CEs<br/><i>~7.9 pairs / S1</i>"]:::highlight
-            
-            XGB --> CE --> Stack
-        end
-        
-        Feats --> XGB
-        
-        Dec["<b>Decision</b><br/>one parent per record - group thresholds tuned on macro F0.5<br/>Unseen country: label-free count calibration + one-owner renormalisation"]:::step
-        
-        Stack --> Dec
+        direction LR
+        N["<b>Normalise</b><br/>transliterate<br/>legal/filler"]:::step --> B
+        B["<b>Blocking (GPU)</b><br/>dense kNN + keys<br/><i>~114 cands</i>"]:::step --> F
+        F["<b>Features (~150)</b><br/>string, number<br/>context"]:::step --> X
+        X["<b>XGBoost (GPU)</b><br/>learned filter"]:::step --> C
+        C["<b>Cross-encoder</b><br/>mDeBERTa<br/>uncertain band"]:::step --> S
+        S["<b>STACKER</b><br/>ours + 2nd XGBoost<br/>+ 5 CEs<br/><i>~7.9 pairs</i>"]:::step --> D
+        D["<b>Decision</b><br/>thresholds +<br/>renormalisation"]:::step
     end
     
-    style Row1 fill:none,stroke:none
-    style Row2 fill:none,stroke:none
     style Pipeline fill:#f6f8fa,stroke:#d0d7de,stroke-width:1px
-
-    Dec --> Out[fa:fa-file-excel matching_results.tsv <br> candidate_pairs.tsv]:::output
+    
+    D --> Out[matching_results.tsv<br>candidate_pairs.tsv]:::output
 ```
 
 ---

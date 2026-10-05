@@ -47,23 +47,23 @@ A company holds the same businesses in three independent sources. **Source 1** i
 │        │                                                                         │
 │        ▼                                                                         │
 │  ┌──────────────┐   ┌──────────────────────────┐   ┌───────────────────────────┐ │
-│  │ Normalise    │──▶│ Blocking (GPU)           │──▶│ Features (~150)           │ │
-│  │ transliterate│   │ dense kNN + rare tokens  │   │ string · number · context │ │
-│  │ legal/filler │   │ + sound / initials keys  │   │ competition · record      │ │
-│  └──────────────┘   │ ≈ 114 candidates / S1    │   └─────────────┬─────────────┘ │
+│  │ Normalise    │──>│ Blocking (GPU)           │──>│ Features (~150)           │ │
+│  │ transliterate│   │ dense kNN + rare tokens  │   │ string - number - context │ │
+│  │ legal/filler │   │ + sound / initials keys  │   │ competition - record      │ │
+│  └──────────────┘   │ ~ 114 candidates / S1    │   └─────────────┬─────────────┘ │
 │                     └──────────────────────────┘                 │               │
 │        ┌──────────────────────────────────────────────────────────┘              │
 │        ▼                                                                         │
 │  ┌──────────────────┐   ┌──────────────────────────┐   ┌──────────────────────┐  │
-│  │ Two-stage        │──▶│ Cross-encoder re-ranking │──▶│ STACKER (final model)│  │
-│  │ XGBoost (GPU)    │   │ mDeBERTa on the uncertain│   │ ours ∪ 2nd XGBoost   │  │
-│  │ learned filter   │   │ band 0.002 < p < 0.998   │   │ (2 halves) ∪ 5 CEs   │  │
-│  └──────────────────┘   └──────────────────────────┘   │ ≈ 7.9 pairs / S1     │  │
+│  │ Two-stage        │──>│ Cross-encoder re-ranking │──>│ STACKER (final model)│  │
+│  │ XGBoost (GPU)    │   │ mDeBERTa on the uncertain│   │ ours + 2nd XGBoost   │  │
+│  │ learned filter   │   │ band 0.002 < p < 0.998   │   │ (2 halves) + 5 CEs   │  │
+│  └──────────────────┘   └──────────────────────────┘   │ ~ 7.9 pairs / S1     │  │
 │                                                        └──────────┬───────────┘  │
 │        ┌──────────────────────────────────────────────────────────┘              │
 │        ▼                                                                         │
 │  ┌──────────────────────────────────────────────────────────────────────────┐    │
-│  │ Decision: one parent per record · group thresholds tuned on macro F0.5   │    │
+│  │ Decision: one parent per record - group thresholds tuned on macro F0.5   │    │
 │  │ Unseen country: label-free count calibration + one-owner renormalisation │    │
 │  └──────────────────────────────────────────────────────────────────────────┘    │
 │        │                                                                         │
@@ -80,24 +80,24 @@ A company holds the same businesses in three independent sources. **Source 1** i
 S2 record: "Lille Compagnie SAS | 35 R. BONTE POLLET, LILLE"
         │
         ▼
-Normalise ──▶ name core "lille compagnie", legal "sas", street "rue bonte pollet", number 35, city lille
+Normalise ──> name core "lille compagnie", legal "sas", street "rue bonte pollet", number 35, city lille
         │
         ▼
-Blocking ──▶ 20 nearest S1 in France (dense) ∪ S1 sharing rare tokens (sparse) ∪ same sound key
+Blocking ──> 20 nearest S1 in France (dense) + S1 sharing rare tokens (sparse) + same sound key
         │
         ▼
-XGBoost ──▶ p = 0.604 for S1 "Lille Foyer SAS | 35 Rue Bonte Pollet, Lille"   (uncertain band)
+XGBoost ──> p = 0.604 for S1 "Lille Foyer SAS | 35 Rue Bonte Pollet, Lille"   (uncertain band)
         │
         ▼
-Cross-encoders ──▶ 6 transformer opinions on the text pair
+Cross-encoders ──> 6 transformer opinions on the text pair
         │
         ▼
-Stacker ──▶ combines our model, the 2nd pipeline, the cross-encoders and competition features
+Stacker ──> combines our model, the 2nd pipeline, the cross-encoders and competition features
         │
         ▼
-Decision ──▶ best S1 for this record? above its group threshold? another strong S1 competing (co-located)?
+Decision ──> best S1 for this record? above its group threshold? another strong S1 competing (co-located)?
         │
-        └──▶ reject: probably a different business at the same address (a French decoy)
+        └──> reject: probably a different business at the same address (a French decoy)
 ```
 
 ---
@@ -235,14 +235,14 @@ entity-resolution/
 │   └── methodology.md           ← full methodology write-up
 ├── src/                         ← main pipeline (run from here)
 │   ├── config.py                ← paths (ER_DATA_DIR, ER_WORK_DIR, ER_OUT_DIR)
-│   ├── preprocess.py · normalize.py · translit.py · stats.py · fillers.py · ctry_norm.py   ← normalisation
-│   ├── embed.py · blocking.py · blocking_sparse.py                                         ← blocking
-│   ├── features.py · build_features.py · rec_feats.py · gen_feats.py · labels.py           ← features
+│   ├── preprocess.py - normalize.py - translit.py - stats.py - fillers.py - ctry_norm.py   ← normalisation
+│   ├── embed.py - blocking.py - blocking_sparse.py                                         ← blocking
+│   ├── features.py - build_features.py - rec_feats.py - gen_feats.py - labels.py           ← features
 │   ├── two_stage.py             ← two-stage XGBoost, assignment, threshold tuning
-│   ├── loco.py · decide_loco.py ← leave-one-country-out simulation
+│   ├── loco.py - decide_loco.py ← leave-one-country-out simulation
 │   ├── ce.py                    ← mDeBERTa cross-encoder: train / score / blend / write
 │   ├── stacker.py               ← final stacker
-│   └── unseen_calib.py · unseen_renorm.py · final_candidates.py   ← final decision + candidate file
+│   └── unseen_calib.py - unseen_renorm.py - final_candidates.py   ← final decision + candidate file
 ├── second_pipeline/             ← independent pipeline: learned bi-encoder blocking + XGBoost (sub-worlds A/B)
 └── cross_encoders/
     ├── ce_hard_pairs.py         ← mDeBERTa on hard training pairs
@@ -287,9 +287,9 @@ set ER_CE_MODEL=C:\path\to\models\mdeberta-v3-base   # microsoft/mdeberta-v3-bas
 | # | Command | Time* |
 |---|---|---|
 | 1 | `python preprocess.py && python stats.py && python embed.py --refit` | ~20 min |
-| 2 | `python blocking.py --splits train` · `python blocking_sparse.py --splits train` (then `--splits test`) | ~60 min |
-| 3 | `python build_features.py --split train --train_end 0.96` · `--split test` · `python rec_feats.py --split train` / `test` | ~3.5 h |
-| 4 | `python two_stage.py fit` · `python two_stage.py predict` | ~2 h |
+| 2 | `python blocking.py --splits train` - `python blocking_sparse.py --splits train` (then `--splits test`) | ~60 min |
+| 3 | `python build_features.py --split train --train_end 0.96` - `--split test` - `python rec_feats.py --split train` / `test` | ~3.5 h |
+| 4 | `python two_stage.py fit` - `python two_stage.py predict` | ~2 h |
 | 5 | `python ce.py train` (m1), then m2 with `ER_CE_NAME=m2 ER_CE_INIT=<work>/ce/model ER_CE_LR=1e-5 ER_CE_LO=0.002 ER_CE_HI=0.998`: `python ce.py train && python ce.py score && python ce.py write` | ~4 h |
 | 6 | `second_pipeline/` (run with `--s1-side A` and `--s1-side B`) + `cross_encoders/` | parallel GPUs |
 | 7 | `python stacker.py val && python stacker.py test` (score files passed via `ER_CE_EXT`, `ER_M2_DIR`, `ER_M2B_DIR`) | ~20 min |

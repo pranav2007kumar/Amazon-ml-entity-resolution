@@ -52,7 +52,7 @@ A company holds the same businesses in three independent sources. **Source 1** i
 │  │ legal/filler │   │ + sound / initials keys  │   │ competition · record      │ │
 │  └──────────────┘   │ ≈ 114 candidates / S1    │   └─────────────┬─────────────┘ │
 │                     └──────────────────────────┘                 │               │
-│        ┌──────────────────────────────────────────────────────────┘               │
+│        ┌──────────────────────────────────────────────────────────┘              │
 │        ▼                                                                         │
 │  ┌──────────────────┐   ┌──────────────────────────┐   ┌──────────────────────┐  │
 │  │ Two-stage        │──▶│ Cross-encoder re-ranking │──▶│ STACKER (final model)│  │
@@ -62,10 +62,10 @@ A company holds the same businesses in three independent sources. **Source 1** i
 │                                                        └──────────┬───────────┘  │
 │        ┌──────────────────────────────────────────────────────────┘              │
 │        ▼                                                                         │
-│  ┌──────────────────────────────────────────────────────────────────────────┐   │
-│  │ Decision: one parent per record · group thresholds tuned on macro F0.5   │   │
-│  │ Unseen country: label-free count calibration + one-owner renormalisation │   │
-│  └──────────────────────────────────────────────────────────────────────────┘   │
+│  ┌──────────────────────────────────────────────────────────────────────────┐    │
+│  │ Decision: one parent per record · group thresholds tuned on macro F0.5   │    │
+│  │ Unseen country: label-free count calibration + one-owner renormalisation │    │
+│  └──────────────────────────────────────────────────────────────────────────┘    │
 │        │                                                                         │
 │        ▼                                                                         │
 │  matching_results.tsv  +  candidate_pairs.tsv                                    │

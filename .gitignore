@@ -1,0 +1,22 @@
+# data, intermediate files and outputs are NOT versioned (competition data + >100 MB files)
+dataset/
+data/
+work*/
+output*/
+models/
+*.parquet
+*.tsv
+*.npy
+*.pkl
+*.zip
+*.safetensors
+*.bin
+*.log
+
+# python / editors
+__pycache__/
+*.pyc
+.venv/
+.ipynb_checkpoints/
+.vscode/
+.idea/

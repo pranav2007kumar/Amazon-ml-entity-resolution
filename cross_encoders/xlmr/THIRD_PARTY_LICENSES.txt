@@ -1,0 +1,15 @@
+Third-party libraries (versions as run on Kaggle; licenses as declared in each package's own metadata)
+
+pandas 2.3.3           BSD 3-Clause
+numpy 2.0.2            BSD
+scipy 1.16.3           BSD
+scikit-learn 1.6.1     BSD 3-Clause
+pyarrow 24.0.0         Apache-2.0
+rapidfuzz 3.14.6       MIT
+sparse_dot_topn 1.2.0  Apache Software License
+xgboost 3.2.0          Apache-2.0
+lightgbm 4.6.0         MIT   (listed in requirements.txt; not used by the V3 path)
+Python 3.12            PSF License
+
+Models: gradient-boosted trees (XGBoost) trained from scratch on the provided training data.
+No pretrained models, no external data, no external APIs.

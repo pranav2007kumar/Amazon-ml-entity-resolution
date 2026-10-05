@@ -39,37 +39,48 @@ A company holds the same businesses in three independent sources. **Source 1** i
 
 ## ✅ Our Solution at a Glance
 
-```
-┌──────────────────────────────────────────────────────────────────────────────────┐
-│                        ENTITY RESOLUTION PIPELINE (per country)                  │
-│                                                                                  │
-│  Raw TSV (S1, S2, S3)                                                            │
-│        │                                                                         │
-│        ▼                                                                         │
-│  ┌──────────────┐   ┌──────────────────────────┐   ┌───────────────────────────┐ │
-│  │ Normalise    │──>│ Blocking (GPU)           │──>│ Features (~150)           │ │
-│  │ transliterate│   │ dense kNN + rare tokens  │   │ string - number - context │ │
-│  │ legal/filler │   │ + sound / initials keys  │   │ competition - record      │ │
-│  └──────────────┘   │ ~ 114 candidates / S1    │   └─────────────┬─────────────┘ │
-│                     └──────────────────────────┘                 │               │
-│        ┌──────────────────────────────────────────────────────────┘              │
-│        ▼                                                                         │
-│  ┌──────────────────┐   ┌──────────────────────────┐   ┌──────────────────────┐  │
-│  │ Two-stage        │──>│ Cross-encoder re-ranking │──>│ STACKER (final model)│  │
-│  │ XGBoost (GPU)    │   │ mDeBERTa on the uncertain│   │ ours + 2nd XGBoost   │  │
-│  │ learned filter   │   │ band 0.002 < p < 0.998   │   │ (2 halves) + 5 CEs   │  │
-│  └──────────────────┘   └──────────────────────────┘   │ ~ 7.9 pairs / S1     │  │
-│                                                        └──────────┬───────────┘  │
-│        ┌──────────────────────────────────────────────────────────┘              │
-│        ▼                                                                         │
-│  ┌──────────────────────────────────────────────────────────────────────────┐    │
-│  │ Decision: one parent per record - group thresholds tuned on macro F0.5   │    │
-│  │ Unseen country: label-free count calibration + one-owner renormalisation │    │
-│  └──────────────────────────────────────────────────────────────────────────┘    │
-│        │                                                                         │
-│        ▼                                                                         │
-│  matching_results.tsv  +  candidate_pairs.tsv                                    │
-└──────────────────────────────────────────────────────────────────────────────────┘
+```mermaid
+flowchart TD
+    classDef step fill:#ffffff,stroke:#d0d7de,stroke-width:2px,color:#24292f,text-align:center
+    classDef input fill:#f6f8fa,stroke:#d0d7de,stroke-width:2px,color:#24292f
+    classDef output fill:#dafbe1,stroke:#4ac26b,stroke-width:2px,color:#24292f
+    classDef highlight fill:#ddf4ff,stroke:#54aeff,stroke-width:2px,color:#24292f,text-align:center
+
+    Input[fa:fa-file-alt Raw TSV <br> S1, S2, S3]:::input --> Norm
+
+    subgraph Pipeline [ENTITY RESOLUTION PIPELINE per country]
+        direction TB
+        
+        subgraph Row1 [ ]
+            direction LR
+            Norm["<b>Normalise</b><br/>transliterate<br/>legal/filler"]:::step
+            Block["<b>Blocking (GPU)</b><br/>dense kNN + rare tokens<br/>+ sound / initials keys<br/><i>~114 candidates / S1</i>"]:::highlight
+            Feats["<b>Features (~150)</b><br/>string - number - context<br/>competition - record"]:::step
+            
+            Norm --> Block --> Feats
+        end
+        
+        subgraph Row2 [ ]
+            direction LR
+            XGB["<b>Two-stage XGBoost (GPU)</b><br/>learned filter"]:::highlight
+            CE["<b>Cross-encoder re-ranking</b><br/>mDeBERTa on uncertain band<br/>0.002 < p < 0.998"]:::step
+            Stack["<b>STACKER (final model)</b><br/>ours + 2nd XGBoost + 5 CEs<br/><i>~7.9 pairs / S1</i>"]:::highlight
+            
+            XGB --> CE --> Stack
+        end
+        
+        Feats --> XGB
+        
+        Dec["<b>Decision</b><br/>one parent per record - group thresholds tuned on macro F0.5<br/>Unseen country: label-free count calibration + one-owner renormalisation"]:::step
+        
+        Stack --> Dec
+    end
+    
+    style Row1 fill:none,stroke:none
+    style Row2 fill:none,stroke:none
+    style Pipeline fill:#f6f8fa,stroke:#d0d7de,stroke-width:1px
+
+    Dec --> Out[fa:fa-file-excel matching_results.tsv <br> candidate_pairs.tsv]:::output
 ```
 
 ---
